@@ -1,3 +1,5 @@
+module Hayaml.Parser where
+
 import Control.Monad
 import Text.ParserCombinators.Parsec
 
