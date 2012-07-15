@@ -1,16 +1,13 @@
 module Hayaml.Parser where
 
 import Control.Monad
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*>))
 import Text.ParserCombinators.Parsec
 
 import Hayaml.Model.YamlNode
 
-
-yamlSequence = keyValuePair `endBy` eol
-
-keyValuePair = YObject <$> ((:[]) <$> parsedKeyValue) 
-    where parsedKeyValue = liftM2 (,) key value
+yamlSequence = YObject <$> parsedKeyValue `sepBy` eol
+    where parsedKeyValue = (,) <$> key <*> value
 
 key = many nonDelimeterChar
 
@@ -20,6 +17,6 @@ value = YString <$> parsedValue
 nonDelimeterChar = noneOf ":\n"
 eol = char '\n'
 
-parseYml :: String -> Either ParseError [YamlNode]
+parseYml :: String -> Either ParseError YamlNode
 parseYml input = parse yamlSequence "unexpected" input
 
