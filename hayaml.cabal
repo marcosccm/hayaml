@@ -50,7 +50,8 @@ Library
   -- Modules exported by the library.
   hs-source-dirs: src
   exposed-modules: 
-    Hayaml
+    Hayaml,
+    Hayaml.Parser
   build-depends:     
     base                    > 3 && < 5,
     parsec                  > 3
