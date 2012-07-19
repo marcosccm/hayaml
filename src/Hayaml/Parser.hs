@@ -14,17 +14,23 @@ key = spaces *> many (noneOf ":")
 
 yValue = spaces *> char ':' *> spaces *> value
     where value = YNumber <$> parseNumber
-              <|> YString <$> parseString
+              <|> YString <$> parseSingleQuotedScalar
+              <|> YString <$> parseDoubleQuotedScalar
+              <|> YString <$> parsePlainScalar
+    
 
 parseNumber = do stream <- getInput
                  case readSigned readFloat stream of 
                   [(n, stream')] -> n <$ setInput stream' 
                   _              -> empty 
 
-parseString = between strDelimiter strDelimiter str
-    where strDelimiter = oneOf "'\""
-          str          = many strChar
-          strChar      = satisfy (`notElem` "\"\'\\")
+parseSingleQuotedScalar = between (char '\'') (char '\'') (many strChar)
+
+parseDoubleQuotedScalar = between (char '"') (char '"')   (many strChar)
+
+parsePlainScalar = manyTill strChar space
+
+strChar = satisfy (`notElem` "\"\'\\")
 
 eol = char '\n'
 
