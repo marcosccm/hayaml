@@ -2,17 +2,17 @@ module Hayaml.Parser where
 
 import Numeric
 import Control.Monad
-import Control.Applicative ((<$>), (<*>), (<$), empty)
+import Control.Applicative ((<$>), (<*>), (<$), (*>), empty)
 import Text.ParserCombinators.Parsec
 
 import Hayaml.Model.YamlNode
 
-yamlSequence = YObject <$> parsedKeyValue `sepBy` eol
+yamlSequence = YObject <$> parsedKeyValue `sepEndBy` eol
     where parsedKeyValue = (,) <$> key <*> yValue
 
-key = many nonDelimeterChar
+key = spaces *> many (noneOf ":")
 
-yValue = char ':' >> value
+yValue = spaces *> char ':' *> spaces *> value
     where value = YNumber <$> parseNumber
               <|> YString <$> parseString
 
@@ -21,9 +21,11 @@ parseNumber = do stream <- getInput
                   [(n, stream')] -> n <$ setInput stream' 
                   _              -> empty 
 
-parseString = many nonDelimeterChar
+parseString = between strDelimiter strDelimiter str
+    where strDelimiter = oneOf "'\""
+          str          = many strChar
+          strChar      = satisfy (`notElem` "\"\'\\")
 
-nonDelimeterChar = noneOf ":\n"
 eol = char '\n'
 
 parseYml :: String -> Either ParseError YamlNode
